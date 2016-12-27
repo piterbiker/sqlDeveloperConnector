@@ -7,6 +7,9 @@ db = polaczenieOracle(1, None)
 # Create a connection to the Redis serer
 rdb = redis.StrictRedis()
 
+# string formatting for naming Redis keys
+redisKeyFormat = "{}[{}:{}]"
+
 
 def getAttributeName(oracleConn, queryAttr):
     """
@@ -34,7 +37,7 @@ def getObjectById(
         redisConn,                # connection to Redis database (destination)
         tableName,              # table name in Oracle database
         primaryKey,             # primary key field
-        primaryKeyValue    # promary field value (search object))
+        primaryKeyValue    # primary field value (search object))
         ):
 
     c2 = oracleConn.cursor()
@@ -42,7 +45,7 @@ def getObjectById(
     
     # default settings: TODO for all record in source table
     if primaryKey:
-        redisKey = "{}[{}:{}]".format(tableName.lower(), primaryKeyValue, primaryKey.lower())
+        redisKey = redisKeyFormat.format(tableName.lower(), primaryKeyValue, primaryKey.lower())
         subQueryString = " where {} = {}".format(primaryKey, primaryKeyValue)
         queryString += subQueryString
 
@@ -51,7 +54,7 @@ def getObjectById(
     if redisKey:
         if redisConn.exists(redisKey):
             for attr in attrNames:
-                redisAttr = "{}[{}:{}]".format(tableName.lower(), primaryKeyValue, attr.lower())
+                redisAttr = redisKeyFormat.format(tableName.lower(), primaryKeyValue, attr.lower())
                 # print all value in Redis databese with ID equal to searching primary key in Oracle table 
                 print (redisConn.get(redisAttr))
         
@@ -64,7 +67,7 @@ def getObjectById(
             else:
                 row = c2.fetchone()
                 for cols in range(0, len(row)):
-                    redisSetKey = "{}[{}:{}]".format(tableName.lower(), primaryKeyValue, c2.description[cols][0].lower())
+                    redisSetKey = redisKeyFormat.format(tableName.lower(), primaryKeyValue, c2.description[cols][0].lower())
                     redisSetValue = row[cols]
                     try:
                         # add all keys to Redis database with value from record in Oracle table witch searching primary key 
