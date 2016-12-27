@@ -9,7 +9,7 @@ def get_string(message, name="string", default=None, minimum_length=0, maximum_l
     message += ": " if default is None else " [%s]: " % (default)
     while True:
         try:
-            line = raw_input(message)
+            line = input(message)
             if not line:
                 if default is not None:
                     return default
@@ -20,7 +20,7 @@ def get_string(message, name="string", default=None, minimum_length=0, maximum_l
             if not (minimum_length <= len(line) <= maximum_length):
                 raise ValueError("%s musi miec co najmniej %s i najwyzej %s znakow" % (name, minimum_length, maximum_length))
             return line if not force_lower else line.lower()
-        except ValueError, err:
+        except ValueError as err:
             print(err)
 
 
@@ -31,7 +31,7 @@ def get_integer(message, name="integer", default=None, minimum=None, maximum=Non
     message += ": " if default is None else " [%d]: " % (default)
     while True:
         try:
-            line = raw_input(message)
+            line = input(message)
             if not line and default is not None:
                 return default
             x = int(line)
@@ -44,7 +44,7 @@ def get_integer(message, name="integer", default=None, minimum=None, maximum=Non
                 (maximum is not None and maximum < x)):
                 raise _RangeError("%s musi byc pomiedzy %s i %s lacznie z %s" % (name, minimum, maximum, (" 0" if allow_zero else "")))
             return x
-        except _RangeError, err:
+        except _RangeError as err:
             print(err)
-        except ValueError, err:
+        except ValueError as err:
             print("%s musi byc typu calkowitego" % (name))

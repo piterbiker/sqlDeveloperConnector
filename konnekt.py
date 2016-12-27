@@ -4,12 +4,10 @@ import cx_Oracle
 from walidacja import get_integer, get_string
 
 # sciezka docelowa kopiowanych plikow jako moduly Python
-#sciezkaCel = r'F:\settings\oracle\sqlDeveloper_connection'
-sciezkaCel = r''
+sciezkaCel = r'F:\settings\oracle\sqlDeveloperConnection'
 
 # sciezka do pliku z polaczeniami SQL Developer 4.1
-#sciezkaZr = r'C:\Users\user\AppData\Roaming\SQL Developer\system4.1.0.18.37\o.jdeveloper.db.connection.12.2.1.0.42.150416.1320'
-sciezkaZr = r''
+sciezkaZr = r'C:\Users\user\AppData\Roaming\SQL Developer\system4.1.0.19.07\o.jdeveloper.db.connection.12.2.1.0.42.150416.1320'
 
 # funkcja connParseXml() parsuje plik polaczen programu SQL Developer 4.1 i tworzy tablice polaczen
 def connParseXml():
@@ -64,12 +62,12 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
 
     # wyswietlanie listy dostepnych polaczen ze zmiennej tablicowej polacz
     if domyslnePolacz == None:
-        print 'Wybierz polaczenie:\n'
+        print ('Wybierz polaczenie:\n')
         licznik=0
         liczbaPol = len(polacz)
         maks = liczbaPol-1
         for polaczenie in polacz:
-            print "\t[%d]: %s" % (licznik, polaczenie['nazwa'])
+            print ("\t[%d]: %s" % (licznik, polaczenie['nazwa']))
             licznik = licznik+1
         nrPolaczenia = get_integer('-> ', 'nrPolaczenia', 0, 0, maks, True)
     else:
@@ -83,7 +81,7 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
         weryfikacja = 0
 
     # wybor parametrow polaczenia    
-    print "\nPolaczenie %s:\n" % (polacz[nrPolaczenia]['nazwa'])
+    print ("\nPolaczenie %s:\n" % (polacz[nrPolaczenia]['nazwa']))
     uzytkownik = get_string("\tUzytkownik: ", "uzytkownik", default=polacz[nrPolaczenia]['user'])
     inform1 = "\tHaslo uzytkownika %s" % (uzytkownik)
     haselko = get_string(inform1, "haselko")
@@ -101,18 +99,18 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
 
     # tworzenie lancucha polaczenia
     conn_str = u"%s/%s@%s:%d/%s" % (uzytkownik, haselko, hostip, porcik, orid)
-    raw_input("\nLancuch polaczenia: %s" % (conn_str))
+    input("\nLancuch polaczenia: %s" % (conn_str))
 
     # tworzenie zmiennej polaczenia
     try:
         db = cx_Oracle.connect(conn_str)
-    except Exception, e:
+    except Exception as e:
         bladl = 'Blad polaczenia %s:\n%s' % (conn_str, e.message)   
-        raw_input(bladl)
+        input(bladl)
         db = None
     else:       
-        print '\nWersja serwera: ' + db.version
-        raw_input('Kontynuuj...')
+        print ('\nWersja serwera: ' + db.version)
+        input('Kontynuuj...')
     finally:
         # funkcja zwraca zmienna polaczenia
         return db
