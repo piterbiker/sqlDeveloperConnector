@@ -13,10 +13,6 @@ sciezkaZr = r'C:\Users\user\AppData\Roaming\SQL Developer\system4.1.0.19.07\o.jd
 def connParseXml():
     # plik polaczen SQL Developer 4.1
     xmlFile = 'connections.xml'
-
-    # pelna sciezka pliku polaczen SQL Developer 4.1
-    connFile = os.path.join(sciezkaZr, xmlFile)
-
     # parsowanie pliku XML polaczen
     drzewo = minidom.parse(connFile)
     el1 = drzewo.getElementsByTagName("Reference")
@@ -32,16 +28,34 @@ def connParseXml():
         for j in dane:
             test = j.getAttribute('addrType')
 
-            if test == "ConnName":
-                slownik['nazwa'] = j.childNodes[1].childNodes[0].data
-            if test == "sid":
-                slownik['sid'] = j.childNodes[1].childNodes[0].data
-            if test == "port":
-                slownik['port'] = int(j.childNodes[1].childNodes[0].data)
-            if test == "user":
-                slownik['user'] = j.childNodes[1].childNodes[0].data
-            if test == "hostname":
-                slownik['hostname'] = j.childNodes[1].childNodes[0].data
+            if test == "OracleConnectionType":
+                typPol = j.childNodes[1].childNodes[0].data
+            
+            if typPol == 'Basic':
+
+                if test == "ConnName":
+                    slownik['nazwa'] = j.childNodes[1].childNodes[0].data
+                if test == "sid":
+                    slownik['sid'] = j.childNodes[1].childNodes[0].data
+                if test == "port":
+                    slownik['port'] = int(j.childNodes[1].childNodes[0].data)
+                if test == "user":
+                    slownik['user'] = j.childNodes[1].childNodes[0].data
+                if test == "hostname":
+                    slownik['hostname'] = j.childNodes[1].childNodes[0].data
+
+            if typPol == 'TNS':
+
+                if test == "ConnName":
+                    slownik['nazwa'] = j.childNodes[1].childNodes[0].data
+                if test == "user":
+                    slownik['user'] = j.childNodes[1].childNodes[0].data
+                if test == "customUrl":
+                    slownik['dns'] = j.childNodes[1].childNodes[0].data
+				
+				
+    # pelna sciezka pliku polaczen SQL Developer 4.1
+    connFile = os.path.join(sciezkaZr, xmlFile)
 
         polacz.append(slownik)
 
@@ -87,18 +101,34 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
     haselko = get_string(inform1, "haselko")
 
     # weryfikacja polaczen
-    if weryfikacja == 1:
-        hostip = get_string("\tHost IP: ", "hostip", default=polacz[nrPolaczenia]['hostname'])
-        porcik = get_integer("\tNumer portu: ", "porcik", polacz[nrPolaczenia]['port'], 1, 10000, False)
-        orid = get_string("\tOracle ID: ", "orid", default=polacz[nrPolaczenia]['sid'])
+	if 'hostname' in polacz[nrPolaczenia]:
+		typPolaczenia = 'SID'
+	
+		if weryfikacja == 1:
+	
+			hostip = get_string("\tHost IP: ", "hostip", default=polacz[nrPolaczenia]['hostname'])
+			porcik = get_integer("\tNumer portu: ", "porcik", polacz[nrPolaczenia]['port'], 1, 10000, False)
+			orid = get_string("\tOracle ID: ", "orid", default=polacz[nrPolaczenia]['sid'])
+	
+		else:
+			hostip = polacz[nrPolaczenia]['hostname']
+			porcik = polacz[nrPolaczenia]['port']
+			orid = polacz[nrPolaczenia]['sid']
+	
+		conn_str = "%s/%s@%s:%d/%s" % (uzytkownik, haselko, hostip, porcik, orid)
+	
+	elif 'dns' in polacz[nrPolaczenia]:
+		typPolaczenia = 'DNS'
+	
+		if weryfikacja == 1:
+	
+			dns = get_string("\tDNS: ", "dns", default=polacz[nrPolaczenia]['dns'])
+	
+		else:
+			dns = polacz[nrPolaczenia]['dns']
+	
+		conn_str = "%s/%s@%s" % (uzytkownik, haselko, dns)
 
-    else:
-        hostip = polacz[nrPolaczenia]['hostname']
-        porcik = polacz[nrPolaczenia]['port']
-        orid = polacz[nrPolaczenia]['sid']
-
-    # tworzenie lancucha polaczenia
-    conn_str = u"%s/%s@%s:%d/%s" % (uzytkownik, haselko, hostip, porcik, orid)
     input("\nLancuch polaczenia: %s" % (conn_str))
 
     # tworzenie zmiennej polaczenia
