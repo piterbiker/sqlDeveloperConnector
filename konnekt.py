@@ -3,13 +3,7 @@ from xml.dom import minidom
 import cx_Oracle
 import getpass
 from walidacja import get_integer, get_string
-
-# sciezka docelowa kopiowanych plikow jako moduly Python
-sciezkaCel = r'F:\settings\oracle\sqlDeveloperConnection'
-
-# sciezka do pliku z polaczeniami SQL Developer 4.1
-sciezkaZr = r'C:\Users\user\AppData\Roaming\SQL Developer\system4.1.0.19.07\o.jdeveloper.db.connection.12.2.1.0.42.150416.1320'
-
+from konnektKonfig import sciezkaZr, sciezkaCel
 
 def connParseXml():
     """
@@ -39,7 +33,7 @@ def connParseXml():
             if test == "OracleConnectionType":
                 typPol = j.childNodes[1].childNodes[0].data
             
-            if typPol == 'Basic':
+            if typPol.upper() == 'BASIC':
 
                 if test == "ConnName":
                     slownik['nazwa'] = j.childNodes[1].childNodes[0].data
