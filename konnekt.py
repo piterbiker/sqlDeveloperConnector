@@ -1,6 +1,7 @@
 import os
 from xml.dom import minidom
 import cx_Oracle
+import getpass
 from walidacja import get_integer, get_string
 
 # sciezka docelowa kopiowanych plikow jako moduly Python
@@ -9,10 +10,17 @@ sciezkaCel = r'F:\settings\oracle\sqlDeveloperConnection'
 # sciezka do pliku z polaczeniami SQL Developer 4.1
 sciezkaZr = r'C:\Users\user\AppData\Roaming\SQL Developer\system4.1.0.19.07\o.jdeveloper.db.connection.12.2.1.0.42.150416.1320'
 
-# funkcja connParseXml() parsuje plik polaczen programu SQL Developer 4.1 i tworzy tablice polaczen
+
 def connParseXml():
+    """
+    funkcja connParseXml() parsuje plik polaczen programu SQL Developer 4.1 i tworzy tablice polaczen
+    """
     # plik polaczen SQL Developer 4.1
     xmlFile = 'connections.xml'
+
+    # pelna sciezka pliku polaczen SQL Developer 4.1
+    connFile = os.path.join(sciezkaZr, xmlFile)
+
     # parsowanie pliku XML polaczen
     drzewo = minidom.parse(connFile)
     el1 = drzewo.getElementsByTagName("Reference")
@@ -52,10 +60,6 @@ def connParseXml():
                     slownik['user'] = j.childNodes[1].childNodes[0].data
                 if test == "customUrl":
                     slownik['dns'] = j.childNodes[1].childNodes[0].data
-				
-				
-    # pelna sciezka pliku polaczen SQL Developer 4.1
-    connFile = os.path.join(sciezkaZr, xmlFile)
 
         polacz.append(slownik)
 
@@ -66,10 +70,12 @@ def connParseXml():
     return polacz
 
 
-# funkcja polaczenieOracle polaczenia do bazy Oracle, zwraca zmienna polaczenia
-# domyslnePolacz: ID polaczenia z tablicy polaczen, domyslne pierwsze
-# testWeryfikacji: czy wyswietlac info o weryfikacji polaczen
 def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
+    """
+    funkcja polaczenieOracle polaczenia do bazy Oracle, zwraca zmienna polaczenia
+    domyslnePolacz: ID polaczenia z tablicy polaczen, domyslne pierwsze
+    testWeryfikacji: czy wyswietlac info o weryfikacji polaczen
+    """
 
     # pobranie tablicy polaczen wygenerowanej przez funcje connParseXml()
     polacz = connParseXml()
@@ -98,36 +104,37 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
     print ("\nPolaczenie %s:\n" % (polacz[nrPolaczenia]['nazwa']))
     uzytkownik = get_string("\tUzytkownik: ", "uzytkownik", default=polacz[nrPolaczenia]['user'])
     inform1 = "\tHaslo uzytkownika %s" % (uzytkownik)
-    haselko = get_string(inform1, "haselko")
+    haselko = getpass.getpass(inform1)
 
-    # weryfikacja polaczen
-	if 'hostname' in polacz[nrPolaczenia]:
-		typPolaczenia = 'SID'
-	
-		if weryfikacja == 1:
-	
-			hostip = get_string("\tHost IP: ", "hostip", default=polacz[nrPolaczenia]['hostname'])
-			porcik = get_integer("\tNumer portu: ", "porcik", polacz[nrPolaczenia]['port'], 1, 10000, False)
-			orid = get_string("\tOracle ID: ", "orid", default=polacz[nrPolaczenia]['sid'])
-	
-		else:
-			hostip = polacz[nrPolaczenia]['hostname']
-			porcik = polacz[nrPolaczenia]['port']
-			orid = polacz[nrPolaczenia]['sid']
-	
-		conn_str = "%s/%s@%s:%d/%s" % (uzytkownik, haselko, hostip, porcik, orid)
-	
-	elif 'dns' in polacz[nrPolaczenia]:
-		typPolaczenia = 'DNS'
-	
-		if weryfikacja == 1:
-	
-			dns = get_string("\tDNS: ", "dns", default=polacz[nrPolaczenia]['dns'])
-	
-		else:
-			dns = polacz[nrPolaczenia]['dns']
-	
-		conn_str = "%s/%s@%s" % (uzytkownik, haselko, dns)
+    # polaczenia typu Basic
+    if 'hostname' in polacz[nrPolaczenia]:
+        typPolaczenia = 'SID'
+    
+        if weryfikacja == 1:
+    
+            hostip = get_string("\tHost IP: ", "hostip", default=polacz[nrPolaczenia]['hostname'])
+            porcik = get_integer("\tNumer portu: ", "porcik", polacz[nrPolaczenia]['port'], 1, 10000, False)
+            orid = get_string("\tOracle ID: ", "orid", default=polacz[nrPolaczenia]['sid'])
+    
+        else:
+            hostip = polacz[nrPolaczenia]['hostname']
+            porcik = polacz[nrPolaczenia]['port']
+            orid = polacz[nrPolaczenia]['sid']
+    
+        conn_str = "%s/%s@%s:%d/%s" % (uzytkownik, haselko, hostip, porcik, orid)
+    
+    # polaczenia typu TNS
+    elif 'dns' in polacz[nrPolaczenia]:
+        typPolaczenia = 'DNS'
+    
+        if weryfikacja == 1:
+    
+            dns = get_string("\tDNS: ", "dns", default=polacz[nrPolaczenia]['dns'])
+    
+        else:
+            dns = polacz[nrPolaczenia]['dns']
+    
+        conn_str = "%s/%s@%s" % (uzytkownik, haselko, dns)
 
     input("\nLancuch polaczenia: %s" % (conn_str))
 
@@ -140,9 +147,7 @@ def polaczenieOracle(domyslnePolacz=None, testWeryfikacji=True):
         db = None
     else:       
         print ('\nWersja serwera: ' + db.version)
-        input('Kontynuuj...')
     finally:
-        # funkcja zwraca zmienna polaczenia
         return db
 
 
